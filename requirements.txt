@@ -30,6 +30,7 @@ EZSheets==2023.3.14
 fastjsonschema==2.20.0
 Flask==3.0.2
 Flask-Bcrypt==1.0.1
+Flask-Cors==5.0.0
 flask-mysql-connector==1.1.0
 Flask-SQLAlchemy==3.1.1
 fonttools==4.54.1
