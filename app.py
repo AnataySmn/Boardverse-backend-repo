@@ -16,7 +16,7 @@ CORS(app, resources={r"/*": {"origins": "*", "methods": ["GET", "POST", "PUT", "
 
 
 # Configure the database
-db_uri = os.getenv('DATABASE_URL')
+db_uri = os.getenv('DATABASE_URL', 'sqlite:///:memory:')
 app.config['SQLALCHEMY_DATABASE_URI'] = db_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
