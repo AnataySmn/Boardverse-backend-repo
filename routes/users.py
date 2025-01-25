@@ -1,5 +1,7 @@
 from flask import Blueprint, request, jsonify
 from models.user import User
+from models.stats import Stats
+from models.activity import Activity
 from extensions import db
 from flask_bcrypt import Bcrypt
 import uuid
@@ -11,7 +13,6 @@ bcrypt = Bcrypt()
 @user_blueprint.route('/register', methods=['POST'])
 def register():
     data = request.json
-
     if User.query.filter_by(userEmail=data['userEmail']).first():
         return jsonify({'error': 'Email already registered'}), 400
 
@@ -26,7 +27,14 @@ def register():
     )
 
     try:
+        # Add user to the database
         db.session.add(new_user)
+        db.session.flush()  # Ensure the user is committed before adding related entries
+
+        # Automatically create stats and activity for the user
+        new_stats = Stats(userId=user_id, statsId=str(uuid.uuid4()))
+        db.session.add(new_stats)
+
         db.session.commit()
         return jsonify({'message': 'User registered successfully!', 'userId': user_id}), 201
     except Exception as e:
@@ -37,7 +45,6 @@ def register():
 @user_blueprint.route('/login', methods=['POST'])
 def login():
     data = request.json
-
     user = User.query.filter_by(userEmail=data['userEmail']).first()
 
     if user and bcrypt.check_password_hash(user.userPassword, data['userPassword']):
@@ -62,10 +69,7 @@ def get_user_profile(userId):
             'userStatus': user.userStatus,
             'userProfileDescription': user.userProfileDescription,
             'userLevel': user.userLevel,
-            'userTotalScore': user.userTotalScore,
-            'userCoins': user.userCoins,
-            'userStats': user.userStats,
-            'userActivity': user.userActivity
+            'userCoins': user.userCoins
         }), 200
     else:
         return jsonify({'error': 'User not found'}), 404
@@ -81,10 +85,7 @@ def update_user_profile(userId):
             user.userName = data.get('userName', user.userName)
             user.userProfileDescription = data.get('userProfileDescription', user.userProfileDescription)
             user.userLevel = data.get('userLevel', user.userLevel)
-            user.userTotalScore = data.get('userTotalScore', user.userTotalScore)
             user.userCoins = data.get('userCoins', user.userCoins)
-            user.userStats = data.get('userStats', user.userStats)
-            user.userActivity = data.get('userActivity', user.userActivity)
 
             db.session.commit()
             return jsonify({'message': 'User profile updated successfully!'}), 200
