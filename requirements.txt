@@ -161,5 +161,6 @@ webencodings==0.5.1
 Werkzeug==3.0.1
 xatlas==0.0.9
 xxhash==3.5.0
+cryptography==44.0.0
 
 
