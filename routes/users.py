@@ -2,12 +2,12 @@ from flask import Blueprint, request, jsonify
 from models.user import User
 from models.stats import Stats
 from models.activity import Activity
-from extensions import db
-from flask_bcrypt import Bcrypt
+from extensions import db, bcrypt
 import uuid
+from routes.auth import token_required
+
 
 user_blueprint = Blueprint('users', __name__)
-bcrypt = Bcrypt()
 
 # Register a new user
 @user_blueprint.route('/register', methods=['POST'])
@@ -41,24 +41,9 @@ def register():
         db.session.rollback()
         return jsonify({'error': str(e)}), 500
 
-# Login a user
-@user_blueprint.route('/login', methods=['POST'])
-def login():
-    data = request.json
-    user = User.query.filter_by(userEmail=data['userEmail']).first()
-
-    if user and bcrypt.check_password_hash(user.userPassword, data['userPassword']):
-        return jsonify({
-            'message': 'Login successful!',
-            'userId': user.userId,
-            'userName': user.userName,
-            'userEmail': user.userEmail
-        }), 200
-    else:
-        return jsonify({'error': 'Invalid email or password'}), 401
-
 # Get user profile
-@user_blueprint.route('/profile/<userId>', methods=['GET'])
+@user_blueprint.route('/profile', methods=['GET'])
+@token_required
 def get_user_profile(userId):
     user = User.query.filter_by(userId=userId).first()
     if user:
@@ -75,7 +60,8 @@ def get_user_profile(userId):
         return jsonify({'error': 'User not found'}), 404
 
 # Update user profile
-@user_blueprint.route('/profile/<userId>', methods=['PUT'])
+@user_blueprint.route('/profile', methods=['PUT'])
+@token_required
 def update_user_profile(userId):
     data = request.json
     user = User.query.filter_by(userId=userId).first()

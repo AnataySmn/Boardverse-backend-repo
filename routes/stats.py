@@ -2,11 +2,14 @@ import uuid
 from flask import Blueprint, jsonify, request
 from models.stats import Stats
 from extensions import db
+from routes.auth import token_required
+
 
 stats_blueprint = Blueprint('stats', __name__)
 
 # Get stats for a user
-@stats_blueprint.route('/stats/<userId>', methods=['GET'])
+@stats_blueprint.route('/stats', methods=['GET'])
+@token_required
 def get_stats(userId):
     stats = Stats.query.filter_by(userId=userId).first()
     if stats:
@@ -19,7 +22,8 @@ def get_stats(userId):
     return jsonify({'error': 'Stats not found'}), 404
 
 # Update stats for a user
-@stats_blueprint.route('/stats/<userId>', methods=['PUT'])
+@stats_blueprint.route('/stats', methods=['PUT'])
+@token_required
 def update_stats(userId):
     data = request.json
     stats = Stats.query.filter_by(userId=userId).first()
@@ -41,16 +45,16 @@ def update_stats(userId):
 
 # Create stats for a user (in case of manual creation, e.g., admin action)
 @stats_blueprint.route('/stats', methods=['POST'])
-def create_stats():
+@token_required
+def create_stats(userId):
     data = request.json
-    user_id = data.get('userId')
 
-    if Stats.query.filter_by(userId=user_id).first():
+    if Stats.query.filter_by(userId=userId).first():
         return jsonify({'error': 'Stats already exist for this user'}), 400
 
     new_stats = Stats(
         statsID=str(uuid.uuid4()),
-        userId=user_id,
+        userId=userId,
         totalGamesPlayed=data.get('totalGamesPlayed', 0),
         totalWins=data.get('totalWins', 0),
         totalLosses=data.get('totalLosses', 0),
@@ -66,7 +70,8 @@ def create_stats():
         return jsonify({'error': str(e)}), 500
 
 # Delete stats for a user (if necessary for cleanup purposes)
-@stats_blueprint.route('/stats/<userId>', methods=['DELETE'])
+@stats_blueprint.route('/stats', methods=['DELETE'])
+@token_required
 def delete_stats(userId):
     stats = Stats.query.filter_by(userId=userId).first()
 

@@ -1,4 +1,6 @@
+# extensions.py
 from flask_sqlalchemy import SQLAlchemy
+from flask_bcrypt import Bcrypt
 
-#initialized here so the same instance can be used across all models, routes and stuff  
 db = SQLAlchemy()
+bcrypt = Bcrypt()

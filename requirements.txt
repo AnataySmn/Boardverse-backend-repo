@@ -162,5 +162,4 @@ Werkzeug==3.0.1
 xatlas==0.0.9
 xxhash==3.5.0
 cryptography==44.0.0
-
-
+pyjwt==2.10.1

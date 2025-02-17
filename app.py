@@ -1,12 +1,8 @@
 import os
 from dotenv import load_dotenv
 from flask import Flask
-from flask_bcrypt import Bcrypt
-from extensions import db
+from extensions import db, bcrypt
 from flask_cors import CORS
-from routes.users import user_blueprint
-from routes.stats import stats_blueprint
-from routes.activities import activity_blueprint
 
 # Load environment variables
 load_dotenv()
@@ -23,12 +19,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 # Initialize extensions
 db.init_app(app)
-bcrypt = Bcrypt(app)
+bcrypt.init_app(app)
+
+from routes.users import user_blueprint
+from routes.stats import stats_blueprint
+from routes.activities import activity_blueprint
+from routes.auth import auth_blueprint
 
 # Register blueprints
 app.register_blueprint(user_blueprint, url_prefix='/user')
 app.register_blueprint(stats_blueprint, url_prefix='/stats')
 app.register_blueprint(activity_blueprint, url_prefix='/activities')
+app.register_blueprint(auth_blueprint, url_prefix='/auth')
 
 # Create database tables
 with app.app_context():

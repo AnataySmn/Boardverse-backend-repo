@@ -3,11 +3,13 @@ from flask import Blueprint, jsonify, request
 from models.activity import Activity
 from extensions import db
 from datetime import datetime
+from routes.auth import token_required
 
 activity_blueprint = Blueprint('activity', __name__)
 
 # Get all activities for a user
-@activity_blueprint.route('/activities/<userId>', methods=['GET'])
+@activity_blueprint.route('/activities', methods=['GET'])
+@token_required
 def get_activities(userId):
     activities = Activity.query.filter_by(userId=userId).all()
     if activities:
@@ -25,13 +27,14 @@ def get_activities(userId):
 
 # Add a new activity for a user
 @activity_blueprint.route('/activities', methods=['POST'])
-def add_activity():
+@token_required
+def add_activity(userId):
     data = request.json
-    user_id = data.get('userId')
+
 
     new_activity = Activity(
         activityId=str(uuid.uuid4()),
-        userId=user_id,
+        userId=userId,
         gameName=data.get('gameName'),
         duration=data.get('duration', 0),
         result=data.get('result', 'Pending'),
@@ -49,6 +52,7 @@ def add_activity():
 
 # Update an existing activity
 @activity_blueprint.route('/activities/<activityId>', methods=['PUT'])
+@token_required
 def update_activity(activityId):
     data = request.json
     activity = Activity.query.filter_by(activityId=activityId).first()
@@ -71,6 +75,7 @@ def update_activity(activityId):
 
 # Delete an activity
 @activity_blueprint.route('/activities/<activityId>', methods=['DELETE'])
+@token_required
 def delete_activity(activityId):
     activity = Activity.query.filter_by(activityId=activityId).first()
 
